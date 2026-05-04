@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Recon Report — tesla.com</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0e1a; color: #e0e0e0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #0d1117 0%, #161b22 100%); border-bottom: 2px solid #30363d; padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 28px; color: #58a6ff; letter-spacing: 2px; text-transform: uppercase; }
+        .header h1 span { color: #2ed573; }
+        .header .meta { text-align: right; font-size: 13px; color: #8b949e; }
+        .header .meta p { margin: 3px 0; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 30px 20px; }
+        .risk-banner { background: linear-gradient(135deg, #2ed57322, #2ed57311); border: 2px solid #2ed573; border-radius: 12px; padding: 25px 30px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .risk-banner .risk-label { font-size: 14px; color: #8b949e; margin-bottom: 5px; }
+        .risk-banner .risk-value { font-size: 36px; font-weight: bold; color: #2ed573; }
+        .risk-score-circle { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #2ed573; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #2ed57322; }
+        .risk-score-circle .score { font-size: 28px; font-weight: bold; color: #2ed573; }
+        .risk-score-circle .score-label { font-size: 11px; color: #8b949e; }
+        .cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 30px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+        .card:hover { transform: translateY(-3px); border-color: #58a6ff; }
+        .card .card-value { font-size: 32px; font-weight: bold; color: #58a6ff; margin-bottom: 8px; }
+        .card .card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+        .section { background: #161b22; border: 1px solid #30363d; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        .section-header { background: #0d1117; padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px; }
+        .section-header h2 { font-size: 16px; color: #58a6ff; text-transform: uppercase; letter-spacing: 1px; }
+        .section-header .count { background: #58a6ff22; color: #58a6ff; padding: 2px 10px; border-radius: 20px; font-size: 12px; }
+        .section-header .grade { padding: 2px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; background: #ff475722; color: #ff4757; border: 1px solid #ff475744; }
+        .section-body { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #0d1117; padding: 10px 15px; text-align: left; font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #30363d; }
+        td { padding: 10px 15px; border-bottom: 1px solid #21262d; font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1c2128; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge.passive { background: #1e90ff22; color: #1e90ff; }
+        .badge.active { background: #2ed57322; color: #2ed573; }
+        .badge.open { background: #2ed57322; color: #2ed573; }
+        .badge.closed { background: #ff475722; color: #ff4757; }
+        .tech-badge { display: inline-block; background: #58a6ff22; color: #58a6ff; border: 1px solid #58a6ff44; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin: 4px; }
+        .reason-list, .steps-list { list-style: none; padding: 0; }
+        .reason-list li, .steps-list li { padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 14px; padding-left: 20px; position: relative; }
+        .reason-list li::before { content: "⚠️"; position: absolute; left: 0; }
+        .steps-list li::before { content: "→"; position: absolute; left: 0; color: #58a6ff; }
+        .footer { text-align: center; padding: 20px; color: #8b949e; font-size: 12px; border-top: 1px solid #30363d; margin-top: 20px; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .empty-msg { color: #8b949e; font-style: italic; text-align: center; padding: 20px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🔍 Web Recon — <span>tesla.com</span></h1>
+    <div class="meta">
+        <p>🕐 2026-05-03 17:04:25</p>
+        <p>🛠️ Web Recon Tool v1.0.0</p>
+        <p>⏱️ Scan Duration: 80s</p>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Risk Banner -->
+    <div class="risk-banner">
+        <div>
+            <div class="risk-label">OVERALL RISK LEVEL</div>
+            <div class="risk-value">LOW</div>
+            <div style="color:#8b949e;font-size:13px;margin-top:5px">Target: tesla.com</div>
+        </div>
+        <div class="risk-score-circle">
+            <div class="score">1.2</div>
+            <div class="score-label">SCORE</div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+        <div class="card"><div class="card-value">91</div><div class="card-label">Subdomains</div></div>
+        <div class="card"><div class="card-value">54</div><div class="card-label">Live Hosts</div></div>
+        <div class="card"><div class="card-value">2</div><div class="card-label">Open Ports</div></div>
+        <div class="card"><div class="card-value">0</div><div class="card-label">CVEs Found</div></div>
+        <div class="card"><div class="card-value">0</div><div class="card-label">JS Endpoints</div></div>
+        <div class="card"><div class="card-value">F</div><div class="card-label">Header Grade</div></div>
+    </div>
+
+    <!-- Subdomains -->
+    <div class="section">
+        <div class="section-header"><h2>🌐 Subdomains</h2><span class="count">91</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Subdomain</th><th>Source</th></tr></thead><tbody><tr><td>origin-tcc-gw-stg.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>emails.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-livestream.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>email.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>mfs-supplier-uat.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-fta.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>clsmdcservicep.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>external-3pl-prd.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>autodiscover.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>static-assets-pay.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>secureguest.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-finplateng-routeone.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-materials.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>email1.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-deliveryopsapi1.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-cicerone.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-warpdashboardapi.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-bolt-forms.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-warp.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-service.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>cicerone.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>mobile.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>trt.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-dev-warptmsapiserver.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>url2547.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-inventorytxnextapi.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>billing.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>url7051.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>warp-einvoicing.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-slingsdlc.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-vendorpartsapi.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>pay.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-shipmentplanningapi.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-warp3pl.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>auth-global-stage.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>livestreamapi-test.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-static-assets-profile-settings.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>auth.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>inside.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>clsmdcgenp.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-vfx-stg.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>onboard.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-finplateng.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-profile.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>k8clsgen.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-einvoicing.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>clsmdcegyp.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>static-map.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>auth-stage.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>errlog.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>employeefeedback.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>url5196.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-vfx.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-profileapi-stg.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-payment.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-bolt.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>service.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>image-emails.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>sspr.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>pm-bounces.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>share.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>location-services-prd.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-shipmentplanningapi.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-inside.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-automation-billing.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>shop.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>cloud.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-static-assets-teslaaccount.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-automation.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-courses.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-translationpipeline.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-einvoicing.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>static.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-partners.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-finplateng-routeone.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>www.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>edgeservices.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>api-firebolt-dev.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>cld-ec.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>clsmdcfinp.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>clswarps.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>clsmdcwarpp.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-translationpipeline.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>url1894.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-finops.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>group301.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>engage.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-fta.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>origin-suppliers.tesla.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>akamai-apigateway-stg-finplateng-defi.tesla.com</td><td><span class='badge passive'>passive</span></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Alive Hosts -->
+    <div class="section">
+        <div class="section-header"><h2>✅ Alive Hosts</h2><span class="count">54</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Subdomain</th><th>Status</th><th>Server</th><th>Title</th></tr></thead><tbody>
+        <tr>
+            <td><a href='https://akamai-apigateway-fta.tesla.com' target='_blank'>akamai-apigateway-fta.tesla.com</a></td>
+            <td>503</td>
+            <td>AkamaiGHost</td>
+            <td style='font-size:12px;color:#8b949e'>Service Unavailable</td>
+        </tr>
+        <tr>
+            <td><a href='https://outlook.office365.com/mail/?realm=tesla.com&vd=autodiscover' target='_blank'>autodiscover.tesla.com</a></td>
+            <td>200</td>
+            <td>Microsoft-HTTPAPI/2.0</td>
+            <td style='font-size:12px;color:#8b949e'>Outlook</td>
+        </tr>
+        <tr>
+            <td><a href='https://static-assets-pay.tesla.com' target='_blank'>static-assets-pay.tesla.com</a></td>
+            <td>404</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://secureguest.tesla.com' target='_blank'>secureguest.tesla.com</a></td>
+            <td>403</td>
+            <td>AkamaiGHost</td>
+            <td style='font-size:12px;color:#8b949e'>Access Denied</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-stg-finplateng-routeone.tesla.com' target='_blank'>akamai-apigateway-stg-finplateng-routeone.tesla.com</a></td>
+            <td>403</td>
+            <td>AkamaiGHost</td>
+            <td style='font-size:12px;color:#8b949e'>Access Denied</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-materials.tesla.com' target='_blank'>akamai-apigateway-materials.tesla.com</a></td>
+            <td>503</td>
+            <td>AkamaiGHost</td>
+            <td style='font-size:12px;color:#8b949e'>Service Unavailable</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-stg-deliveryopsapi1.tesla.com' target='_blank'>akamai-apigateway-stg-deliveryopsapi1.tesla.com</a></td>
+            <td>503</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Error</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-stg-warpdashboardapi.tesla.com' target='_blank'>akamai-apigateway-stg-warpdashboardapi.tesla.com</a></td>
+            <td>401</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://cicerone.tesla.com' target='_blank'>cicerone.tesla.com</a></td>
+            <td>401</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://mobile.tesla.com/AppStore/account/username' target='_blank'>mobile.tesla.com</a></td>
+            <td>200</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Tesla Mobile App Store</td>
+        </tr>
+        <tr>
+            <td><a href='https://trt.tesla.com' target='_blank'>trt.tesla.com</a></td>
+            <td>200</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>TRT</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-dev-warptmsapiserver.tesla.com' target='_blank'>akamai-apigateway-dev-warptmsapiserver.tesla.com</a></td>
+            <td>503</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Error</td>
+        </tr>
+        <tr>
+            <td><a href='https://url2547.tesla.com' target='_blank'>url2547.tesla.com</a></td>
+            <td>404</td>
+            <td>nginx</td>
+            <td style='font-size:12px;color:#8b949e'>404 Not Found</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-stg-inventorytxnextapi.tesla.com' target='_blank'>akamai-apigateway-stg-inventorytxnextapi.tesla.com</a></td>
+            <td>503</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Error</td>
+        </tr>
+        <tr>
+            <td><a href='https://billing.tesla.com' target='_blank'>billing.tesla.com</a></td>
+            <td>200</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Home</td>
+        </tr>
+        <tr>
+            <td><a href='https://url7051.tesla.com' target='_blank'>url7051.tesla.com</a></td>
+            <td>503</td>
+            <td>AkamaiGHost</td>
+            <td style='font-size:12px;color:#8b949e'>Error</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-stg-vendorpartsapi.tesla.com' target='_blank'>akamai-apigateway-stg-vendorpartsapi.tesla.com</a></td>
+            <td>503</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Error</td>
+        </tr>
+        <tr>
+            <td><a href='https://pay.tesla.com' target='_blank'>pay.tesla.com</a></td>
+            <td>200</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Tesla - Payment</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-shipmentplanningapi.tesla.com' target='_blank'>akamai-apigateway-shipmentplanningapi.tesla.com</a></td>
+            <td>503</td>
+            <td>AkamaiGHost</td>
+            <td style='font-size:12px;color:#8b949e'>Service Unavailable</td>
+        </tr>
+        <tr>
+            <td><a href='https://akamai-apigateway-stg-warp3pl.tesla.com' target='_blank'>akamai-apigateway-stg-warp3pl.tesla.com</a></td>
+            <td>503</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'>Error</td>
+        </tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Open Ports -->
+    <div class="section">
+        <div class="section-header"><h2>🔌 Open Ports</h2><span class="count">2</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Port</th><th>Protocol</th><th>State</th><th>Service</th><th>Banner</th></tr></thead><tbody>
+        <tr>
+            <td>80</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTP</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr>
+        <tr>
+            <td>443</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTPS</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Technologies -->
+    <div class="section">
+        <div class="section-header"><h2>⚙️ Technologies</h2><span class="count">0</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No technologies detected</div>
+        </div>
+    </div>
+
+    <!-- Vulnerabilities -->
+    <div class="section">
+        <div class="section-header"><h2>🚨 Vulnerabilities</h2><span class="count">0</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No vulnerabilities found</div>
+        </div>
+    </div>
+
+    <!-- JS Analysis -->
+    <div class="section">
+        <div class="section-header"><h2>🔬 JS Analysis</h2><span class="count">0 files</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No JS findings</div>
+        </div>
+    </div>
+
+    <!-- Crawler -->
+    <div class="section">
+        <div class="section-header"><h2>🕷️ Crawler — Interesting URLs</h2><span class="count">0</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No interesting URLs found</div>
+        </div>
+    </div>
+
+    <!-- Wayback URLs -->
+    <div class="section">
+        <div class="section-header"><h2>🔗 Historical URLs (Wayback)</h2><span class="count">44</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>URL</th></tr></thead><tbody><tr><td><a href='https://www.tesla.com/%22/el_gr/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/el_gr/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://www.tesla.com/%22/is_is/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/is_is/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://www.tesla.com/%22/nl_nl/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/nl_nl/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://www.tesla.com/%22/en_mo/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/en_mo/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://developer.tesla.com/docs/fleet-api/virtual-keys/overview' target='_blank'>https://developer.tesla.com/docs/fleet-api/virtual-keys/overview</a></td></tr><tr><td><a href='https://www.tesla.com/%22/it_ch/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/it_ch/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://auth.tesla.com/wsfed/v1/' target='_blank'>https://auth.tesla.com/wsfed/v1/</a></td></tr><tr><td><a href='https://www.tesla.com/%22/fr_ca/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/fr_ca/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://www.tesla.com/%22/no_no/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/no_no/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://auth.tesla.com/void/callbackM' target='_blank'>https://auth.tesla.com/void/callbackM</a></td></tr><tr><td><a href='https://auth.tesla.com/de_at/oauth2/v1/authorize' target='_blank'>https://auth.tesla.com/de_at/oauth2/v1/authorize</a></td></tr><tr><td><a href='https://www.tesla.com/.gitignore?utm_source=dlvr.it&utm_medium=twitter' target='_blank'>https://www.tesla.com/.gitignore?utm_source=dlvr.it&utm_medium=twitter</a></td></tr><tr><td><a href='https://www.tesla.com/%22/ko_kr/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/ko_kr/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://www.tesla.com/%22/he_il/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRIM=TRIMsavik%27%3C/&URI=URIsavik%27%3C/&a=asavik%27%3C/&access_token=access_tokensavik%27%3C/&address=addresssavik%27%3C/&allss=allsssavik%27%3C/&alow_new_posts=alow_new_postssavik%27%3C/&amp%3Belq=amp%3Belqsavik%27%3C/&arrangeby=arrangebysavik%27%3C/&b=bsavik%27%3C/&bkba_opt=bkba_optsavik%27%3C/&callingApp=callingAppsavik%27%3C/&captcha=captchasavik%27%3C/&cat=catsavik%27%3C/&categoryid=categoryidsavik%27%3C/&cid=cidsavik%27%3C/&cluster=clustersavik%27%3C/&code=codesavik%27%3C/&color2=color2savik%27%3C/&conditions=conditionssavik%27%3C/&conf_protected=conf_protectedsavik%27%3C/&countryCode=countryCodesavik%27%3C/&cta=ctasavik%27%3C/&delmarked=delmarkedsavik%27%3C/&doaction2=doaction2savik%27%3C/&douser=dousersavik%27%3C/&editmode=editmodesavik%27%3C/&email=emailsavik%27%3C/&emailAddress=emailAddresssavik%27%3C/&emailto=emailtosavik%27%3C/&enddate=enddatesavik%27%3C/&energy_redirect=energy_redirectsavik%27%3C/&error=errorsavik%27%3C/&fbclid=fbclidsavik%27%3C/&features=featuressavik%27%3C/&feed=feedsavik%27%3C/&fileLength=fileLengthsavik%27%3C/&ftag=ftagsavik%27%3C/&ftp=ftpsavik%27%3C/&i=isavik%27%3C/&id=idsavik%27%3C/&immagine=immaginesavik%27%3C/&incentiveType=incentiveTypesavik%27%3C/&inputH=inputHsavik%27%3C/&iplogged=iploggedsavik%27%3C/&jt=jtsavik%27%3C/&k=ksavik%27%3C/&keyword=keywordsavik%27%3C/&keywords=keywordssavik%27%3C/&l=lsavik%27%3C/&language=languagesavik%27%3C/&lat=latsavik%27%3C/&list_type=list_typesavik%27%3C/&lng=lngsavik%27%3C/&locale=localesavik%27%3C/&logFile=logFilesavik%27%3C/&m=msavik%27%3C/&md5hash=md5hashsavik%27%3C/&mkt_id=mkt_idsavik%27%3C/&model=modelsavik%27%3C/&month=monthsavik%27%3C/&name=namesavik%27%3C/&nivoslider4wp_file_text_headline=nivoslider4wp_file' target='_blank'>https://www.tesla.com/%22/he_il/cybertruck?CVV=CVVsavik%27%3C/&Sandwiches=Sandwichessavik%27%3C/&TRI</a></td></tr><tr><td><a href='https://www.tesla.com/blog/secret-tesla-motors-master-plan-just-between-you-and-me?ref=philmohun.com' target='_blank'>https://www.tesla.com/blog/secret-tesla-motors-master-plan-just-between-you-and-me?ref=philmohun.com</a></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- DNS Records -->
+    <div class="section">
+        <div class="section-header"><h2>🌍 DNS Records</h2></div>
+        <div class="section-body">
+            <div class="two-col">
+                <div>
+                    <table><thead><tr><th>Type</th><th>Value</th></tr></thead><tbody><tr><td><span class='badge passive'>A</span></td><td style='font-size:12px;word-break:break-all'>2.18.52.207</td></tr><tr><td><span class='badge passive'>A</span></td><td style='font-size:12px;word-break:break-all'>2.18.51.207</td></tr><tr><td><span class='badge passive'>A</span></td><td style='font-size:12px;word-break:break-all'>2.18.54.207</td></tr><tr><td><span class='badge passive'>AAAA</span></td><td style='font-size:12px;word-break:break-all'>64:ff9b::212:36cf</td></tr><tr><td><span class='badge passive'>AAAA</span></td><td style='font-size:12px;word-break:break-all'>64:ff9b::212:32cf</td></tr><tr><td><span class='badge passive'>AAAA</span></td><td style='font-size:12px;word-break:break-all'>64:ff9b::1728:64cf</td></tr><tr><td><span class='badge passive'>MX</span></td><td style='font-size:12px;word-break:break-all'>10 tesla-com.mail.protection.outlook.com.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>a7-66.akam.net.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>a9-67.akam.net.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>edns69.ultradns.com.</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"atlassian-domain-verification=FuJL8qfcWp7BKpnaomRV1Vmay09Vt0rdhikq9Gh/CwPYjsvTIwkrhaVAX1idqUMl"</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"_i88zzpi9e3jr0xglot953efk0ui36y5"</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"_quuerjb9mywulmdygnzgnt9awyzm15c"</td></tr><tr><td><span class='badge passive'>SOA</span></td><td style='font-size:12px;word-break:break-all'>edns69.ultradns.com. domain.teslamotors.com. 2016025233 1800 86400 86400 86400</td></tr></tbody></table>
+                </div>
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Email Security</h3>
+                    <table><tbody>
+                        <tr><td>SPF</td><td><span class='badge' style='background:#ff475722;color:#ff4757'>Missing</span></td></tr>
+                        <tr><td>DMARC</td><td><span class='badge' style='background:#2ed57322;color:#2ed573'>Strict</span></td></tr>
+                        <tr><td>DKIM</td><td><span class='badge' style='background:#2ed57322;color:#2ed573'>selector1</span></td></tr>
+                    </tbody></table>
+                    <br><table><tbody><tr><td>⚠️ SPF record missing — email spoofing possible</td></tr></tbody></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Headers -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🛡️ Security Headers</h2>
+            <span class="grade">F</span>
+            <span class="count">Score: 0.8/10</span>
+        </div>
+        <div class="section-body">
+            <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Missing Headers</h3>
+            <table><thead><tr><th>Header</th><th>Severity</th><th>Impact</th></tr></thead><tbody>
+        <tr>
+            <td>Content-Security-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>High</span></td>
+            <td style='font-size:12px;color:#8b949e'>No XSS protection, inline scripts allowed</td>
+        </tr>
+        <tr>
+            <td>X-Frame-Options</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Site can be embedded in iframe — clickjacking possible</td>
+        </tr>
+        <tr>
+            <td>X-Content-Type-Options</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Browser may execute files with wrong MIME type</td>
+        </tr>
+        <tr>
+            <td>Referrer-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Sensitive URLs may leak via Referrer header</td>
+        </tr>
+        <tr>
+            <td>X-XSS-Protection</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>No XSS protection on older browsers</td>
+        </tr>
+        <tr>
+            <td>Cache-Control</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Sensitive data may be cached by browser/proxy</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Embedder-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Cross-origin isolation not enforced</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Opener-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Window opener access not restricted</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Resource-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Resources loadable from any origin</td>
+        </tr>
+        <tr>
+            <td>Access-Control-Allow-Origin</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>CORS not explicitly configured</td>
+        </tr>
+        <tr>
+            <td>X-Permitted-Cross-Domain-Policies</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Flash/PDF cross-domain access not restricted</td>
+        </tr>
+        <tr>
+            <td>Expect-CT</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Misissued certificates may not be detected</td>
+        </tr>
+        <tr>
+            <td>Public-Key-Pins</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Certificate pinning not enforced</td>
+        </tr>
+        <tr>
+            <td>Feature-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Older browsers features not restricted</td>
+        </tr>
+        <tr>
+            <td>X-Download-Options</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>IE may auto-execute downloaded files</td>
+        </tr>
+        <tr>
+            <td>X-DNS-Prefetch-Control</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>DNS prefetch may leak visited URLs</td>
+        </tr>
+        <tr>
+            <td>Timing-Allow-Origin</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Resource timing data may be exposed</td>
+        </tr>
+        <tr>
+            <td>Clear-Site-Data</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Browser data not cleared on logout</td>
+        </tr>
+        <tr>
+            <td>Origin-Agent-Cluster</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Process isolation not requested</td>
+        </tr>
+        <tr>
+            <td>X-Robots-Tag</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Sensitive pages may be indexed by search engines</td>
+        </tr>
+        <tr>
+            <td>NEL</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Network errors not logged</td>
+        </tr>
+        <tr>
+            <td>Report-To</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Security violations not reported</td>
+        </tr></tbody></table>
+            <br><h3 style='color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase'>Info Disclosure</h3><table><thead><tr><th>Header</th><th>Value</th><th>Impact</th></tr></thead><tbody><tr><td>Server</td><td style='color:#ffa502'>AkamaiGHost</td><td style='font-size:12px;color:#8b949e'>Reveals server software and version — info disclosure</td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Robots.txt -->
+    <div class="section">
+        <div class="section-header"><h2>🤖 Robots.txt</h2><span class="count">0 paths</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No robots.txt found or no disallowed paths</div>
+        </div>
+    </div>
+
+    <!-- Risk Assessment -->
+    <div class="section">
+        <div class="section-header"><h2>⚠️ Risk Assessment</h2></div>
+        <div class="section-body">
+            <div class="two-col">
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Risk Reasons</h3>
+                    <ul class='reason-list'><li>20 sensitive URLs found in Wayback Machine</li></ul>
+                </div>
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Next Steps</h3>
+                    <ul class='steps-list'><li>Sensitive URLs found in history → manually investigate 20 URLs</li></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    <p>Generated by Web Recon Tool v1.0.0 | 2026-05-03 17:04:25</p>
+</div>
+
+</body>
+</html>

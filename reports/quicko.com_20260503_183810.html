@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Recon Report — quicko.com</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0e1a; color: #e0e0e0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #0d1117 0%, #161b22 100%); border-bottom: 2px solid #30363d; padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 28px; color: #58a6ff; letter-spacing: 2px; text-transform: uppercase; }
+        .header h1 span { color: #2ed573; }
+        .header .meta { text-align: right; font-size: 13px; color: #8b949e; }
+        .header .meta p { margin: 3px 0; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 30px 20px; }
+        .risk-banner { background: linear-gradient(135deg, #2ed57322, #2ed57311); border: 2px solid #2ed573; border-radius: 12px; padding: 25px 30px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .risk-banner .risk-label { font-size: 14px; color: #8b949e; margin-bottom: 5px; }
+        .risk-banner .risk-value { font-size: 36px; font-weight: bold; color: #2ed573; }
+        .risk-score-circle { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #2ed573; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #2ed57322; }
+        .risk-score-circle .score { font-size: 28px; font-weight: bold; color: #2ed573; }
+        .risk-score-circle .score-label { font-size: 11px; color: #8b949e; }
+        .cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 30px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+        .card:hover { transform: translateY(-3px); border-color: #58a6ff; }
+        .card .card-value { font-size: 32px; font-weight: bold; color: #58a6ff; margin-bottom: 8px; }
+        .card .card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+        .section { background: #161b22; border: 1px solid #30363d; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        .section-header { background: #0d1117; padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px; }
+        .section-header h2 { font-size: 16px; color: #58a6ff; text-transform: uppercase; letter-spacing: 1px; }
+        .section-header .count { background: #58a6ff22; color: #58a6ff; padding: 2px 10px; border-radius: 20px; font-size: 12px; }
+        .section-header .grade { padding: 2px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; background: #ff475722; color: #ff4757; border: 1px solid #ff475744; }
+        .section-body { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #0d1117; padding: 10px 15px; text-align: left; font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #30363d; }
+        td { padding: 10px 15px; border-bottom: 1px solid #21262d; font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1c2128; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge.passive { background: #1e90ff22; color: #1e90ff; }
+        .badge.active { background: #2ed57322; color: #2ed573; }
+        .badge.open { background: #2ed57322; color: #2ed573; }
+        .badge.closed { background: #ff475722; color: #ff4757; }
+        .tech-badge { display: inline-block; background: #58a6ff22; color: #58a6ff; border: 1px solid #58a6ff44; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin: 4px; }
+        .reason-list, .steps-list { list-style: none; padding: 0; }
+        .reason-list li, .steps-list li { padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 14px; padding-left: 20px; position: relative; }
+        .reason-list li::before { content: "⚠️"; position: absolute; left: 0; }
+        .steps-list li::before { content: "→"; position: absolute; left: 0; color: #58a6ff; }
+        .footer { text-align: center; padding: 20px; color: #8b949e; font-size: 12px; border-top: 1px solid #30363d; margin-top: 20px; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .empty-msg { color: #8b949e; font-style: italic; text-align: center; padding: 20px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🔍 Web Recon — <span>quicko.com</span></h1>
+    <div class="meta">
+        <p>🕐 2026-05-03 18:38:10</p>
+        <p>🛠️ Web Recon Tool v1.0.0</p>
+        <p>⏱️ Scan Duration: 81s</p>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Risk Banner -->
+    <div class="risk-banner">
+        <div>
+            <div class="risk-label">OVERALL RISK LEVEL</div>
+            <div class="risk-value">LOW</div>
+            <div style="color:#8b949e;font-size:13px;margin-top:5px">Target: quicko.com</div>
+        </div>
+        <div class="risk-score-circle">
+            <div class="score">0.6</div>
+            <div class="score-label">SCORE</div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+        <div class="card"><div class="card-value">65</div><div class="card-label">Subdomains</div></div>
+        <div class="card"><div class="card-value">33</div><div class="card-label">Live Hosts</div></div>
+        <div class="card"><div class="card-value">2</div><div class="card-label">Open Ports</div></div>
+        <div class="card"><div class="card-value">0</div><div class="card-label">CVEs Found</div></div>
+        <div class="card"><div class="card-value">0</div><div class="card-label">JS Endpoints</div></div>
+        <div class="card"><div class="card-value">F</div><div class="card-label">Header Grade</div></div>
+    </div>
+
+    <!-- Subdomains -->
+    <div class="section">
+        <div class="section-header"><h2>🌐 Subdomains</h2><span class="count">65</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Subdomain</th><th>Source</th></tr></thead><tbody><tr><td>cliq.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>n8n.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>icicidirect.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>help.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev1-accounts.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>blog.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>navigate.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>support.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>fwtrack.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>it.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>cms-strapi.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>plans.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>aliceblueonline.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>app.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>idfc.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>api.gsp.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev-cliq.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>assets.learn.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>upstox.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>gsp.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>connect.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>tax-payment-gateway.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>icicisecurities.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>tools.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev1-myaccount.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>angelone.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>oauth.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>kotaksecurities.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>mintgenie.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev1-it.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>lm.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>learn.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev-dhan.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>uat-tax-payment-gateway.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>link.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>pritunlzero.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>www.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>zerodha.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev-api.gsp.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>pritunl.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>download.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>appstore.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>accountant.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>bytes.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>mail.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>form16.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>drive.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>trader.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>iifl.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>meet.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>join.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>accounts.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>cms.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>hdfc.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>qpon.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>developer.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>axisdirect.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>api.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>dev-qpon.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>order.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>artifacts.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>sandbox.quicko.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>cdn.quicko.com</td><td><span class='badge passive'>passive</span></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Alive Hosts -->
+    <div class="section">
+        <div class="section-header"><h2>✅ Alive Hosts</h2><span class="count">33</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Subdomain</th><th>Status</th><th>Server</th><th>Title</th></tr></thead><tbody>
+        <tr>
+            <td><a href='https://cliq.quicko.company/admin/' target='_blank'>cliq.quicko.com</a></td>
+            <td>200</td>
+            <td>openresty</td>
+            <td style='font-size:12px;color:#8b949e'>Admin Portal</td>
+        </tr>
+        <tr>
+            <td><a href='http://n8n.quicko.com' target='_blank'>n8n.quicko.com</a></td>
+            <td>200</td>
+            <td>openresty</td>
+            <td style='font-size:12px;color:#8b949e'>Default Site</td>
+        </tr>
+        <tr>
+            <td><a href='https://help.quicko.com/portal/en/home' target='_blank'>help.quicko.com</a></td>
+            <td>200</td>
+            <td>ZGS</td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://dev1-accounts.quicko.com' target='_blank'>dev1-accounts.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>Sign In - Quicko Accounts</td>
+        </tr>
+        <tr>
+            <td><a href='https://navigate.quicko.com' target='_blank'>navigate.quicko.com</a></td>
+            <td>403</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://fwtrack.quicko.com' target='_blank'>fwtrack.quicko.com</a></td>
+            <td>404</td>
+            <td>fwe</td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://it.quicko.com' target='_blank'>it.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>File Taxes Online in India | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://api.gsp.quicko.com' target='_blank'>api.gsp.quicko.com</a></td>
+            <td>403</td>
+            <td></td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://assets.learn.quicko.com' target='_blank'>assets.learn.quicko.com</a></td>
+            <td>403</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://tax-payment-gateway.quicko.com' target='_blank'>tax-payment-gateway.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>Tax Payment Gateway | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://tools.quicko.com' target='_blank'>tools.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>Income Tax, GST, TDS Tools and Calculators | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://quicko.com' target='_blank'>quicko.com</a></td>
+            <td>200</td>
+            <td>Framer/a338d3d</td>
+            <td style='font-size:12px;color:#8b949e'>Save, Pay, File &amp; Track Your Taxes | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://dev1-myaccount.quicko.com' target='_blank'>dev1-myaccount.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>Quicko Account</td>
+        </tr>
+        <tr>
+            <td><a href='https://oauth.quicko.com' target='_blank'>oauth.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>Quicko Oauth</td>
+        </tr>
+        <tr>
+            <td><a href='https://dev1-it.quicko.com' target='_blank'>dev1-it.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>File Taxes Online in India | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://lm.quicko.com' target='_blank'>lm.quicko.com</a></td>
+            <td>200</td>
+            <td>openresty</td>
+            <td style='font-size:12px;color:#8b949e'>listmonk - Email Marketing Platform | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://learn.quicko.com' target='_blank'>learn.quicko.com</a></td>
+            <td>200</td>
+            <td>Apache</td>
+            <td style='font-size:12px;color:#8b949e'>Search - Learn by Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://uat-tax-payment-gateway.quicko.com' target='_blank'>uat-tax-payment-gateway.quicko.com</a></td>
+            <td>200</td>
+            <td>AmazonS3</td>
+            <td style='font-size:12px;color:#8b949e'>Tax Payment Gateway | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://quicko.com' target='_blank'>link.quicko.com</a></td>
+            <td>200</td>
+            <td>Framer/a338d3d</td>
+            <td style='font-size:12px;color:#8b949e'>Save, Pay, File &amp; Track Your Taxes | Quicko</td>
+        </tr>
+        <tr>
+            <td><a href='https://pritunlzero.quicko.com/login' target='_blank'>pritunlzero.quicko.com</a></td>
+            <td>200</td>
+            <td>openresty</td>
+            <td style='font-size:12px;color:#8b949e'>Pritunl</td>
+        </tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Open Ports -->
+    <div class="section">
+        <div class="section-header"><h2>🔌 Open Ports</h2><span class="count">2</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Port</th><th>Protocol</th><th>State</th><th>Service</th><th>Banner</th></tr></thead><tbody>
+        <tr>
+            <td>80</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTP</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr>
+        <tr>
+            <td>443</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTPS</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Technologies -->
+    <div class="section">
+        <div class="section-header"><h2>⚙️ Technologies</h2><span class="count">0</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No technologies detected</div>
+        </div>
+    </div>
+
+    <!-- Vulnerabilities -->
+    <div class="section">
+        <div class="section-header"><h2>🚨 Vulnerabilities</h2><span class="count">0</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No vulnerabilities found</div>
+        </div>
+    </div>
+
+    <!-- JS Analysis -->
+    <div class="section">
+        <div class="section-header"><h2>🔬 JS Analysis</h2><span class="count">0 files</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No JS findings</div>
+        </div>
+    </div>
+
+    <!-- Crawler -->
+    <div class="section">
+        <div class="section-header"><h2>🕷️ Crawler — Interesting URLs</h2><span class="count">30</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>URL</th></tr></thead><tbody><tr><td><a href='https://accounts.quicko.com/login/main-TKHA33UN.js' target='_blank'>https://accounts.quicko.com/login/main-TKHA33UN.js</a></td></tr><tr><td><a href='https://assets.learn.quicko.com/wp-content/uploads/2020/04/15105039/cropped-icon-512x512-1-192x192.png' target='_blank'>https://assets.learn.quicko.com/wp-content/uploads/2020/04/15105039/cropped-icon-512x512-1-192x192.p</a></td></tr><tr><td><a href='https://developer.quicko.com/projects/integration/bank-integration/account-details/bank_account_details' target='_blank'>https://developer.quicko.com/projects/integration/bank-integration/account-details/bank_account_deta</a></td></tr><tr><td><a href='https://learn.quicko.com/wp-content/uploads/2020/09/ic_invoice_124px.jpg' target='_blank'>https://learn.quicko.com/wp-content/uploads/2020/09/ic_invoice_124px.jpg</a></td></tr><tr><td><a href='https://accounts.quicko.com/login/' target='_blank'>https://accounts.quicko.com/login/</a></td></tr><tr><td><a href='https://assets.learn.quicko.com/wp-content/uploads/2021/09/30110911/Quicko-Logo-25.svg' target='_blank'>https://assets.learn.quicko.com/wp-content/uploads/2021/09/30110911/Quicko-Logo-25.svg</a></td></tr><tr><td><a href='https://developer.quicko.com/projects/integration/bank-integration/account-statement/bank_account_statement' target='_blank'>https://developer.quicko.com/projects/integration/bank-integration/account-statement/bank_account_st</a></td></tr><tr><td><a href='https://learn.quicko.com/xmlrpc.php?rsd' target='_blank'>https://learn.quicko.com/xmlrpc.php?rsd</a></td></tr><tr><td><a href='https://learn.quicko.com/wp-content/uploads/2020/09/ic_legal_124px.jpg' target='_blank'>https://learn.quicko.com/wp-content/uploads/2020/09/ic_legal_124px.jpg</a></td></tr><tr><td><a href='https://accounts.quicko.com/individuals/login' target='_blank'>https://accounts.quicko.com/individuals/login</a></td></tr><tr><td><a href='https://assets.learn.quicko.com/wp-content/uploads/2020/08/20182750/bytes-logo.png' target='_blank'>https://assets.learn.quicko.com/wp-content/uploads/2020/08/20182750/bytes-logo.png</a></td></tr><tr><td><a href='https://assets.learn.quicko.com/wp-content/uploads/2020/04/15105039/cropped-icon-512x512-1-180x180.png' target='_blank'>https://assets.learn.quicko.com/wp-content/uploads/2020/04/15105039/cropped-icon-512x512-1-180x180.p</a></td></tr><tr><td><a href='https://cliq.quicko.company/0aa29135-06ca-4d3c-91d2-5d9093d96fc6/login' target='_blank'>https://cliq.quicko.company/0aa29135-06ca-4d3c-91d2-5d9093d96fc6/login</a></td></tr><tr><td><a href='https://developer.quicko.com/projects/integration/oauth/api_based/api_based' target='_blank'>https://developer.quicko.com/projects/integration/oauth/api_based/api_based</a></td></tr><tr><td><a href='https://developer.quicko.com/sitemap.xml' target='_blank'>https://developer.quicko.com/sitemap.xml</a></td></tr><tr><td><a href='https://learn.quicko.com/wp-content/uploads/2020/09/ic_chart_124px.jpg' target='_blank'>https://learn.quicko.com/wp-content/uploads/2020/09/ic_chart_124px.jpg</a></td></tr><tr><td><a href='https://accounts.quicko.com/login/chunk-T2SUGI35.js' target='_blank'>https://accounts.quicko.com/login/chunk-T2SUGI35.js</a></td></tr><tr><td><a href='https://quicko.com/accountant' target='_blank'>https://quicko.com/accountant</a></td></tr><tr><td><a href='https://learn.quicko.com/wp-json/wp/v2/pages/27459' target='_blank'>https://learn.quicko.com/wp-json/wp/v2/pages/27459</a></td></tr><tr><td><a href='https://accounts.quicko.com/login/?utm_source=com-quicko&amp;utm_medium=direct&amp;utm_campaign=com.quicko.navigation.login' target='_blank'>https://accounts.quicko.com/login/?utm_source=com-quicko&amp;utm_medium=direct&amp;utm_campaign=com.</a></td></tr><tr><td><a href='https://developer.quicko.com/llms.txt' target='_blank'>https://developer.quicko.com/llms.txt</a></td></tr><tr><td><a href='https://accounts.quicko.com/login' target='_blank'>https://accounts.quicko.com/login</a></td></tr><tr><td><a href='https://accounts.quicko.com/login/polyfills-5OKMR5GC.js' target='_blank'>https://accounts.quicko.com/login/polyfills-5OKMR5GC.js</a></td></tr><tr><td><a href='https://developer.quicko.com/projects/connect/guides/oauth/oauth' target='_blank'>https://developer.quicko.com/projects/connect/guides/oauth/oauth</a></td></tr><tr><td><a href='https://assets.learn.quicko.com/wp-content/uploads/2020/04/15105039/cropped-icon-512x512-1-32x32.png' target='_blank'>https://assets.learn.quicko.com/wp-content/uploads/2020/04/15105039/cropped-icon-512x512-1-32x32.png</a></td></tr><tr><td><a href='https://developer.quicko.com/projects/connect/guides/getting-started/oauth' target='_blank'>https://developer.quicko.com/projects/connect/guides/getting-started/oauth</a></td></tr><tr><td><a href='https://accounts.quicko.com/login/styles-V3PPVEPV.css' target='_blank'>https://accounts.quicko.com/login/styles-V3PPVEPV.css</a></td></tr><tr><td><a href='https://developer.quicko.com/projects/integration/oauth/redirection_based/redirection_based' target='_blank'>https://developer.quicko.com/projects/integration/oauth/redirection_based/redirection_based</a></td></tr><tr><td><a href='https://learn.quicko.com/wp-content/uploads/2020/09/ic_money_124px.jpg' target='_blank'>https://learn.quicko.com/wp-content/uploads/2020/09/ic_money_124px.jpg</a></td></tr><tr><td><a href='https://learn.quicko.com/wp-content/uploads/2020/09/business.jpg' target='_blank'>https://learn.quicko.com/wp-content/uploads/2020/09/business.jpg</a></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Wayback URLs -->
+    <div class="section">
+        <div class="section-header"><h2>🔗 Historical URLs (Wayback)</h2><span class="count">41</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>URL</th></tr></thead><tbody><tr><td><a href='http://quicko.com:80/company-registration/private-limited-company' target='_blank'>http://quicko.com:80/company-registration/private-limited-company</a></td></tr><tr><td><a href='https://lm.quicko.com/admin/login' target='_blank'>https://lm.quicko.com/admin/login</a></td></tr><tr><td><a href='https://quicko.com/gst/api' target='_blank'>https://quicko.com/gst/api</a></td></tr><tr><td><a href='https://quicko.com/assets/images/api/zerodha-icon.png' target='_blank'>https://quicko.com/assets/images/api/zerodha-icon.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/api/banner1.svg' target='_blank'>https://quicko.com/assets/images/api/banner1.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/api/payroll.png' target='_blank'>https://quicko.com/assets/images/api/payroll.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/api/brokers.png' target='_blank'>https://quicko.com/assets/images/api/brokers.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/api/gst_customer_web.png' target='_blank'>https://quicko.com/assets/images/api/gst_customer_web.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/api/Onboarding%20dealers.svg' target='_blank'>https://quicko.com/assets/images/api/Onboarding%20dealers.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/api/gst_api_banner.svg' target='_blank'>https://quicko.com/assets/images/api/gst_api_banner.svg</a></td></tr><tr><td><a href='https://quicko.com/api/' target='_blank'>https://quicko.com/api/</a></td></tr><tr><td><a href='https://accounts.quicko.com/robots.txt' target='_blank'>https://accounts.quicko.com/robots.txt</a></td></tr><tr><td><a href='https://quicko.com/feed.xml' target='_blank'>https://quicko.com/feed.xml</a></td></tr><tr><td><a href='https://blog.quicko.com/robots.txt' target='_blank'>https://blog.quicko.com/robots.txt</a></td></tr><tr><td><a href='https://quicko.com/assets/resources/products/itr_products.json' target='_blank'>https://quicko.com/assets/resources/products/itr_products.json</a></td></tr><tr><td><a href='https://quicko.com/assets/images/home/quicko_tax_platform.json' target='_blank'>https://quicko.com/assets/images/home/quicko_tax_platform.json</a></td></tr><tr><td><a href='https://quicko.com/gst/plans/manifest.json' target='_blank'>https://quicko.com/gst/plans/manifest.json</a></td></tr><tr><td><a href='https://www.quicko.com/.well-known/trust.txt' target='_blank'>https://www.quicko.com/.well-known/trust.txt</a></td></tr><tr><td><a href='https://quicko.com/about-us/manifest.json' target='_blank'>https://quicko.com/about-us/manifest.json</a></td></tr><tr><td><a href='https://www.quicko.com/ads.txt' target='_blank'>https://www.quicko.com/ads.txt</a></td></tr><tr><td><a href='https://quicko.com/contact-us/manifest.json' target='_blank'>https://quicko.com/contact-us/manifest.json</a></td></tr><tr><td><a href='https://quicko.com/atom.xml' target='_blank'>https://quicko.com/atom.xml</a></td></tr><tr><td><a href='https://quicko.com/robots.txt' target='_blank'>https://quicko.com/robots.txt</a></td></tr><tr><td><a href='https://www.quicko.com/.well-known/security.txt' target='_blank'>https://www.quicko.com/.well-known/security.txt</a></td></tr><tr><td><a href='https://quicko.com/gst/assets/images/services/itr/manifest.json' target='_blank'>https://quicko.com/gst/assets/images/services/itr/manifest.json</a></td></tr><tr><td><a href='https://www.quicko.com/app-ads.txt' target='_blank'>https://www.quicko.com/app-ads.txt</a></td></tr><tr><td><a href='https://quicko.com/assets/images/products/income-tax/sprite_it.svg' target='_blank'>https://quicko.com/assets/images/products/income-tax/sprite_it.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/icons/calculator_icon.svg' target='_blank'>https://quicko.com/assets/icons/calculator_icon.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/js/polyfills-es5.8df0290728d2eb905cce.js' target='_blank'>https://quicko.com/assets/js/polyfills-es5.8df0290728d2eb905cce.js</a></td></tr><tr><td><a href='https://quicko.com/assets/images/partners/banner.svg' target='_blank'>https://quicko.com/assets/images/partners/banner.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/home/angel_one_logo.svg' target='_blank'>https://quicko.com/assets/images/home/angel_one_logo.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/about-us/team/parth.png' target='_blank'>https://quicko.com/assets/images/about-us/team/parth.png</a></td></tr><tr><td><a href='https://quicko.com/gst/assets/images/services/itr/dr_guru.svg' target='_blank'>https://quicko.com/gst/assets/images/services/itr/dr_guru.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/about-us/team/vishwas.png' target='_blank'>https://quicko.com/assets/images/about-us/team/vishwas.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/partners/testimonials/photo_ca_saksham_jhunjhunwala.png' target='_blank'>https://quicko.com/assets/images/partners/testimonials/photo_ca_saksham_jhunjhunwala.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/products/gst/dr_tc.svg' target='_blank'>https://quicko.com/assets/images/products/gst/dr_tc.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/products/pan/dr_ekyc.svg' target='_blank'>https://quicko.com/assets/images/products/pan/dr_ekyc.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/home/upstox_logo.svg' target='_blank'>https://quicko.com/assets/images/home/upstox_logo.svg</a></td></tr><tr><td><a href='https://quicko.com/assets/images/about-us/team/shrutika.png' target='_blank'>https://quicko.com/assets/images/about-us/team/shrutika.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/about-us/what-drives-us/photo_jay.png' target='_blank'>https://quicko.com/assets/images/about-us/what-drives-us/photo_jay.png</a></td></tr><tr><td><a href='https://quicko.com/assets/images/about-us/what-drives-us/photo_nachiketa_vadera.png' target='_blank'>https://quicko.com/assets/images/about-us/what-drives-us/photo_nachiketa_vadera.png</a></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- DNS Records -->
+    <div class="section">
+        <div class="section-header"><h2>🌍 DNS Records</h2></div>
+        <div class="section-body">
+            <div class="two-col">
+                <div>
+                    <table><thead><tr><th>Type</th><th>Value</th></tr></thead><tbody><tr><td><span class='badge passive'>A</span></td><td style='font-size:12px;word-break:break-all'>31.43.161.6</td></tr><tr><td><span class='badge passive'>A</span></td><td style='font-size:12px;word-break:break-all'>31.43.160.6</td></tr><tr><td><span class='badge passive'>AAAA</span></td><td style='font-size:12px;word-break:break-all'>64:ff9b::1f2b:a006</td></tr><tr><td><span class='badge passive'>AAAA</span></td><td style='font-size:12px;word-break:break-all'>64:ff9b::1f2b:a106</td></tr><tr><td><span class='badge passive'>MX</span></td><td style='font-size:12px;word-break:break-all'>10 alt4.aspmx.l.google.com.</td></tr><tr><td><span class='badge passive'>MX</span></td><td style='font-size:12px;word-break:break-all'>10 feedback-smtp.ap-south-1.amazonses.com.</td></tr><tr><td><span class='badge passive'>MX</span></td><td style='font-size:12px;word-break:break-all'>10 inbound-smtp.us-east-1.amazonaws.com.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>ns-1694.awsdns-19.co.uk.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>ns-285.awsdns-35.com.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>ns-552.awsdns-05.net.</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"linkedin-site-verification=b4a174e6-fdae-454d-9dbf-d3715465edb8"</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"notion-domain-verification=6Berk5imJmC5McVhKn9yvzYRKO0q9FK4mV8EvCpZ5x8"</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"notion-domain-verification=AqLbaiblx1tYpry5SWbPy2Q7GWuaCDXIlPwn7h1HOoT"</td></tr><tr><td><span class='badge passive'>SOA</span></td><td style='font-size:12px;word-break:break-all'>ns-1694.awsdns-19.co.uk. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400</td></tr><tr><td><span class='badge passive'>CAA</span></td><td style='font-size:12px;word-break:break-all'>0 issue "amazon.com"</td></tr><tr><td><span class='badge passive'>CAA</span></td><td style='font-size:12px;word-break:break-all'>0 issue "letsencrypt.org"</td></tr><tr><td><span class='badge passive'>CAA</span></td><td style='font-size:12px;word-break:break-all'>0 iodef "mailto:devops@quicko.com"</td></tr><tr><td><span class='badge passive'>SPF</span></td><td style='font-size:12px;word-break:break-all'>"v=spf1 include:transmail.net.in ~all"</td></tr></tbody></table>
+                </div>
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Email Security</h3>
+                    <table><tbody>
+                        <tr><td>SPF</td><td><span class='badge' style='background:#ff475722;color:#ff4757'>Missing</span></td></tr>
+                        <tr><td>DMARC</td><td><span class='badge' style='background:#2ed57322;color:#2ed573'>Quarantine</span></td></tr>
+                        <tr><td>DKIM</td><td><span class='badge' style='background:#2ed57322;color:#2ed573'>google</span></td></tr>
+                    </tbody></table>
+                    <br><table><tbody><tr><td>⚠️ SPF record missing — email spoofing possible</td></tr></tbody></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Headers -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🛡️ Security Headers</h2>
+            <span class="grade">F</span>
+            <span class="count">Score: 1.2/10</span>
+        </div>
+        <div class="section-body">
+            <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Missing Headers</h3>
+            <table><thead><tr><th>Header</th><th>Severity</th><th>Impact</th></tr></thead><tbody>
+        <tr>
+            <td>Content-Security-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>High</span></td>
+            <td style='font-size:12px;color:#8b949e'>No XSS protection, inline scripts allowed</td>
+        </tr>
+        <tr>
+            <td>X-Frame-Options</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Site can be embedded in iframe — clickjacking possible</td>
+        </tr>
+        <tr>
+            <td>Referrer-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Sensitive URLs may leak via Referrer header</td>
+        </tr>
+        <tr>
+            <td>Permissions-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Browser features not restricted</td>
+        </tr>
+        <tr>
+            <td>X-XSS-Protection</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>No XSS protection on older browsers</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Embedder-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Cross-origin isolation not enforced</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Opener-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Window opener access not restricted</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Resource-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Resources loadable from any origin</td>
+        </tr>
+        <tr>
+            <td>Access-Control-Allow-Origin</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>CORS not explicitly configured</td>
+        </tr>
+        <tr>
+            <td>X-Permitted-Cross-Domain-Policies</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Flash/PDF cross-domain access not restricted</td>
+        </tr>
+        <tr>
+            <td>Expect-CT</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Misissued certificates may not be detected</td>
+        </tr>
+        <tr>
+            <td>Public-Key-Pins</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Certificate pinning not enforced</td>
+        </tr>
+        <tr>
+            <td>Feature-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Older browsers features not restricted</td>
+        </tr>
+        <tr>
+            <td>X-Download-Options</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>IE may auto-execute downloaded files</td>
+        </tr>
+        <tr>
+            <td>X-DNS-Prefetch-Control</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>DNS prefetch may leak visited URLs</td>
+        </tr>
+        <tr>
+            <td>Timing-Allow-Origin</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Resource timing data may be exposed</td>
+        </tr>
+        <tr>
+            <td>Clear-Site-Data</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Browser data not cleared on logout</td>
+        </tr>
+        <tr>
+            <td>Origin-Agent-Cluster</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Process isolation not requested</td>
+        </tr>
+        <tr>
+            <td>X-Robots-Tag</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Sensitive pages may be indexed by search engines</td>
+        </tr>
+        <tr>
+            <td>NEL</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Network errors not logged</td>
+        </tr>
+        <tr>
+            <td>Report-To</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Security violations not reported</td>
+        </tr></tbody></table>
+            <br><h3 style='color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase'>Info Disclosure</h3><table><thead><tr><th>Header</th><th>Value</th><th>Impact</th></tr></thead><tbody><tr><td>Server</td><td style='color:#ffa502'>Framer/a338d3d</td><td style='font-size:12px;color:#8b949e'>Reveals server software and version — info disclosure</td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Robots.txt -->
+    <div class="section">
+        <div class="section-header"><h2>🤖 Robots.txt</h2><span class="count">0 paths</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No robots.txt found or no disallowed paths</div>
+        </div>
+    </div>
+
+    <!-- Risk Assessment -->
+    <div class="section">
+        <div class="section-header"><h2>⚠️ Risk Assessment</h2></div>
+        <div class="section-body">
+            <div class="two-col">
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Risk Reasons</h3>
+                    <ul class='reason-list'><li>9 API endpoints found in history — test for IDOR</li></ul>
+                </div>
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Next Steps</h3>
+                    <ul class='steps-list'><li>API endpoints found → test for IDOR, auth bypass, injection</li></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    <p>Generated by Web Recon Tool v1.0.0 | 2026-05-03 18:38:10</p>
+</div>
+
+</body>
+</html>
