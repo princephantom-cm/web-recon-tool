@@ -15,7 +15,7 @@ A Python-based web reconnaissance tool that goes beyond simple scanning — it *
 
 | Intigriti.com | HackerOne.com |
 |---|---|
-| ![Intigriti Report](https://github.com/princephantom-cm/web-recon-tool/blob/main/screenshots/hackerone.com.png) | ![HackerOne Report]() |
+| ![Intigriti Report](intigriti.com.png) | ![HackerOne Report]() |
 
 ---
 
