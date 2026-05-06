@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Recon Report — hackerone.com</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0e1a; color: #e0e0e0; min-height: 100vh; }
+        .header { background: linear-gradient(135deg, #0d1117 0%, #161b22 100%); border-bottom: 2px solid #30363d; padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 28px; color: #58a6ff; letter-spacing: 2px; text-transform: uppercase; }
+        .header h1 span { color: #ffa502; }
+        .header .meta { text-align: right; font-size: 13px; color: #8b949e; }
+        .header .meta p { margin: 3px 0; }
+        .container { max-width: 1300px; margin: 0 auto; padding: 30px 20px; }
+        .risk-banner { background: linear-gradient(135deg, #ffa50222, #ffa50211); border: 2px solid #ffa502; border-radius: 12px; padding: 25px 30px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .risk-banner .risk-label { font-size: 14px; color: #8b949e; margin-bottom: 5px; }
+        .risk-banner .risk-value { font-size: 36px; font-weight: bold; color: #ffa502; }
+        .risk-score-circle { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #ffa502; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #ffa50222; }
+        .risk-score-circle .score { font-size: 28px; font-weight: bold; color: #ffa502; }
+        .risk-score-circle .score-label { font-size: 11px; color: #8b949e; }
+        .cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 15px; margin-bottom: 30px; }
+        .card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 20px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+        .card:hover { transform: translateY(-3px); border-color: #58a6ff; }
+        .card .card-value { font-size: 32px; font-weight: bold; color: #58a6ff; margin-bottom: 8px; }
+        .card .card-label { font-size: 11px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; }
+        .section { background: #161b22; border: 1px solid #30363d; border-radius: 10px; margin-bottom: 25px; overflow: hidden; }
+        .section-header { background: #0d1117; padding: 15px 20px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px; }
+        .section-header h2 { font-size: 16px; color: #58a6ff; text-transform: uppercase; letter-spacing: 1px; }
+        .section-header .count { background: #58a6ff22; color: #58a6ff; padding: 2px 10px; border-radius: 20px; font-size: 12px; }
+        .section-header .grade { padding: 2px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; background: #ff6b3522; color: #ff6b35; border: 1px solid #ff6b3544; }
+        .section-body { padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #0d1117; padding: 10px 15px; text-align: left; font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #30363d; }
+        td { padding: 10px 15px; border-bottom: 1px solid #21262d; font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #1c2128; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; }
+        .badge.passive { background: #1e90ff22; color: #1e90ff; }
+        .badge.active { background: #2ed57322; color: #2ed573; }
+        .badge.open { background: #2ed57322; color: #2ed573; }
+        .badge.closed { background: #ff475722; color: #ff4757; }
+        .tech-badge { display: inline-block; background: #58a6ff22; color: #58a6ff; border: 1px solid #58a6ff44; padding: 5px 12px; border-radius: 20px; font-size: 12px; margin: 4px; }
+        .reason-list, .steps-list { list-style: none; padding: 0; }
+        .reason-list li, .steps-list li { padding: 8px 0; border-bottom: 1px solid #21262d; font-size: 14px; padding-left: 20px; position: relative; }
+        .reason-list li::before { content: "⚠️"; position: absolute; left: 0; }
+        .steps-list li::before { content: "→"; position: absolute; left: 0; color: #58a6ff; }
+        .footer { text-align: center; padding: 20px; color: #8b949e; font-size: 12px; border-top: 1px solid #30363d; margin-top: 20px; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .empty-msg { color: #8b949e; font-style: italic; text-align: center; padding: 20px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🔍 Web Recon — <span>hackerone.com</span></h1>
+    <div class="meta">
+        <p>🕐 2026-05-06 14:52:54</p>
+        <p>🛠️ Web Recon Tool v1.0.0</p>
+        <p>⏱️ Scan Duration: 133s</p>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Risk Banner -->
+    <div class="risk-banner">
+        <div>
+            <div class="risk-label">OVERALL RISK LEVEL</div>
+            <div class="risk-value">MEDIUM</div>
+            <div style="color:#8b949e;font-size:13px;margin-top:5px">Target: hackerone.com</div>
+        </div>
+        <div class="risk-score-circle">
+            <div class="score">5.5</div>
+            <div class="score-label">SCORE</div>
+        </div>
+    </div>
+
+    <!-- 🧠 Top Findings -->
+    <div class="section">
+        <div class="section-header"><h2>🧠 Top Findings</h2></div>
+        <div class="section-body">
+            <ul class="reason-list">
+                <li>Moderate risk — further manual testing recommended</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+        <div class="card"><div class="card-value">27</div><div class="card-label">Subdomains</div></div>
+        <div class="card"><div class="card-value">10</div><div class="card-label">Live Hosts</div></div>
+        <div class="card"><div class="card-value">4</div><div class="card-label">Open Ports</div></div>
+        <div class="card"><div class="card-value">7</div><div class="card-label">CVEs Found</div></div>
+        <div class="card"><div class="card-value">1</div><div class="card-label">JS Endpoints</div></div>
+        <div class="card"><div class="card-value">D</div><div class="card-label">Header Grade</div></div>
+    </div>
+
+    <!-- Subdomains -->
+    <div class="section">
+        <div class="section-header"><h2>🌐 Subdomains</h2><span class="count">27</span></div>
+        <div class="section-body">
+            <h3 style="margin-bottom:10px;color:#8b949e;font-size:13px">Top Subdomains</h3>
+            <ul>
+                <li>api.hackerone.com</li>
+            </ul>
+            <details style="margin-top:15px">
+                <summary style="cursor:pointer;color:#58a6ff">View All (27)</summary>
+                <table style="margin-top:10px">
+                    <thead><tr><th>Subdomain</th><th>Source</th></tr></thead>
+                    <tbody><tr><td>zendesk2.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>zendesk4.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>docs.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>resources.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>api.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>b.ns.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>fwdkim1.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>links.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>info.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>mta-sts.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>managed.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>websockets.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>mta-sts.forwarding.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>email-ses.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>zendesk1.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>go.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>zendesk3.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>support.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>forwarding.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>mta-sts.managed.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>design.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>gslink.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>www.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>pmbounces.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>events.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr><tr><td>a.ns.hackerone.com</td><td><span class='badge passive'>passive</span></td></tr></tbody>
+                </table>
+            </details>
+        </div>
+    </div>
+
+    <!-- Alive Hosts -->
+    <div class="section">
+        <div class="section-header"><h2>✅ Alive Hosts</h2><span class="count">10</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Subdomain</th><th>Status</th><th>Server</th><th>Title</th></tr></thead><tbody>
+        <tr>
+            <td><a href='https://docs.hackerone.com/en/' target='_blank'>docs.hackerone.com</a></td>
+            <td>200</td>
+            <td>cloudflare</td>
+            <td style='font-size:12px;color:#8b949e'></td>
+        </tr>
+        <tr>
+            <td><a href='https://api.hackerone.com' target='_blank'>api.hackerone.com</a></td>
+            <td>200</td>
+            <td>cloudflare</td>
+            <td style='font-size:12px;color:#8b949e'>HackerOne API</td>
+        </tr>
+        <tr>
+            <td><a href='https://www.hackerone.com/' target='_blank'>hackerone.com</a></td>
+            <td>200</td>
+            <td>cloudflare</td>
+            <td style='font-size:12px;color:#8b949e'>HackerOne | Leader in Continuous Threat Exposure Management </td>
+        </tr>
+        <tr>
+            <td><a href='https://mta-sts.hackerone.com' target='_blank'>mta-sts.hackerone.com</a></td>
+            <td>404</td>
+            <td>GitHub.com</td>
+            <td style='font-size:12px;color:#8b949e'>Page not found &middot; GitHub Pages</td>
+        </tr>
+        <tr>
+            <td><a href='https://mta-sts.forwarding.hackerone.com' target='_blank'>mta-sts.forwarding.hackerone.com</a></td>
+            <td>404</td>
+            <td>GitHub.com</td>
+            <td style='font-size:12px;color:#8b949e'>Page not found &middot; GitHub Pages</td>
+        </tr>
+        <tr>
+            <td><a href='https://support.hackerone.com/support/login' target='_blank'>support.hackerone.com</a></td>
+            <td>200</td>
+            <td>cloudflare</td>
+            <td style='font-size:12px;color:#8b949e'>Sign into : HackerOne Support Portal</td>
+        </tr>
+        <tr>
+            <td><a href='https://mta-sts.managed.hackerone.com' target='_blank'>mta-sts.managed.hackerone.com</a></td>
+            <td>404</td>
+            <td>GitHub.com</td>
+            <td style='font-size:12px;color:#8b949e'>Page not found &middot; GitHub Pages</td>
+        </tr>
+        <tr>
+            <td><a href='https://gslink.hackerone.com' target='_blank'>gslink.hackerone.com</a></td>
+            <td>404</td>
+            <td>nginx</td>
+            <td style='font-size:12px;color:#8b949e'>404 Not Found</td>
+        </tr>
+        <tr>
+            <td><a href='https://www.hackerone.com' target='_blank'>www.hackerone.com</a></td>
+            <td>200</td>
+            <td>cloudflare</td>
+            <td style='font-size:12px;color:#8b949e'>HackerOne | Leader in Continuous Threat Exposure Management </td>
+        </tr>
+        <tr>
+            <td><a href='http://pmbounces.hackerone.com' target='_blank'>pmbounces.hackerone.com</a></td>
+            <td>200</td>
+            <td>nginx/1.28.0</td>
+            <td style='font-size:12px;color:#8b949e'>Postmark &mdash; Email delivery for web apps</td>
+        </tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Open Ports -->
+    <div class="section">
+        <div class="section-header"><h2>🔌 Open Ports</h2><span class="count">4</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Port</th><th>Protocol</th><th>State</th><th>Service</th><th>Banner</th></tr></thead><tbody>
+        <tr>
+            <td>80</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTP</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr>
+        <tr>
+            <td>443</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTPS</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr>
+        <tr>
+            <td>8080</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTP-Alt</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr>
+        <tr>
+            <td>8443</td>
+            <td>TCP</td>
+            <td><span class='badge open'>OPEN</span></td>
+            <td>HTTPS-Alt</td>
+            <td style='color:#8b949e;font-size:12px'></td>
+        </tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Technologies -->
+    <div class="section">
+        <div class="section-header"><h2>⚙️ Technologies</h2><span class="count">6</span></div>
+        <div class="section-body">
+            <span class='tech-badge'>Drupal</span><span class='tech-badge'>Cloudflare</span><span class='tech-badge'>Fastly</span><span class='tech-badge'>Google Tag Manager</span><span class='tech-badge'>jQuery</span><span class='tech-badge'>Font Awesome</span>
+        </div>
+    </div>
+
+    <!-- Vulnerabilities -->
+    <div class="section">
+        <div class="section-header"><h2>🚨 Vulnerabilities</h2><span class="count">7</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Severity</th><th>CVE</th><th>Technology</th><th>Description</th><th>CVSS</th></tr></thead><tbody>
+        <tr>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Critical</span></td>
+            <td style='color:#58a6ff'>CVE-2020-13671</td>
+            <td>Drupal</td>
+            <td>Remote code execution via file upload</td>
+            <td>9.8</td>
+        </tr>
+        <tr>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Critical</span></td>
+            <td style='color:#58a6ff'>CVE-2019-6340</td>
+            <td>Drupal</td>
+            <td>Drupalgeddon3 — RCE via REST API</td>
+            <td>9.8</td>
+        </tr>
+        <tr>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>High</span></td>
+            <td style='color:#58a6ff'>CVE-2022-25271</td>
+            <td>Drupal</td>
+            <td>Improper input validation in core</td>
+            <td>7.5</td>
+        </tr>
+        <tr>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='color:#58a6ff'>CVE-2020-11023</td>
+            <td>jQuery</td>
+            <td>XSS via HTML passed to manipulation methods</td>
+            <td>6.1</td>
+        </tr>
+        <tr>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='color:#58a6ff'>CVE-2020-11022</td>
+            <td>jQuery</td>
+            <td>XSS via passing HTML to manipulation methods</td>
+            <td>6.1</td>
+        </tr>
+        <tr>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='color:#58a6ff'>CVE-2019-11358</td>
+            <td>jQuery</td>
+            <td>Prototype pollution via Object.extend</td>
+            <td>6.1</td>
+        </tr>
+        <tr>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='color:#58a6ff'>N/A</td>
+            <td>Cloudflare</td>
+            <td>WAF/CDN detected — origin IP bypass may expose real server</td>
+            <td>0.0</td>
+        </tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- JS Analysis -->
+    <div class="section">
+        <div class="section-header"><h2>🔬 JS Analysis</h2><span class="count">7 files</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>Severity</th><th>Finding</th><th>Type</th><th>Source</th></tr></thead><tbody><tr><td><span class='badge' style='background:#1e90ff22;color:#1e90ff'>Info</span></td><td>/js/forms2/</td><td><span class='badge passive'>API</span></td><td></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Crawler -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🕷️ Crawler — Interesting URLs</h2>
+            <span class="count">4</span>
+            <span style="font-size:11px;color:#ff4757;margin-left:5px">HIGH: 0</span>
+            <span style="font-size:11px;color:#ffa502;margin-left:5px">MED: 3</span>
+            <span style="font-size:11px;color:#2ed573;margin-left:5px">LOW: 1</span>
+        </div>
+        <div class="section-body">
+            <table><thead><tr><th>Priority</th><th>URL</th></tr></thead><tbody><tr><td><span class='badge' style='background:#ffa50222;color:#ffa502'>MEDIUM</span></td><td><a href='https://hackerone.com/`${jukeboxApiHost}/api/public/v3/get_filter_options`' target='_blank'>https://hackerone.com/`${jukeboxApiHost}/api/public/v3/get_filter_options`</a></td></tr><tr><td><span class='badge' style='background:#ffa50222;color:#ffa502'>MEDIUM</span></td><td><a href='https://www.hackerone.com/`${jukeboxApiHost}/api/public/v3/get_filter_options`' target='_blank'>https://www.hackerone.com/`${jukeboxApiHost}/api/public/v3/get_filter_options`</a></td></tr><tr><td><span class='badge' style='background:#ffa50222;color:#ffa502'>MEDIUM</span></td><td><a href='https://www.hackerone.com/resources/`${jukeboxApiHost}/api/public/v3/get_filter_options`' target='_blank'>https://www.hackerone.com/resources/`${jukeboxApiHost}/api/public/v3/get_filter_options`</a></td></tr><tr><td><span class='badge' style='background:#2ed57322;color:#2ed573'>LOW</span></td><td><a href='https://www.hackerone.com/knowledge-center/devsecops-quick-guide-process-tools-and-best-practices' target='_blank'>https://www.hackerone.com/knowledge-center/devsecops-quick-guide-process-tools-and-best-practices</a></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Wayback URLs -->
+    <div class="section">
+        <div class="section-header"><h2>🔗 Historical URLs (Wayback)</h2><span class="count">18</span></div>
+        <div class="section-body">
+            <table><thead><tr><th>URL</th></tr></thead><tbody><tr><td><a href='https://hackerone.com/.env' target='_blank'>https://hackerone.com/.env</a></td></tr><tr><td><a href='https://hackerone.com/1password' target='_blank'>https://hackerone.com/1password</a></td></tr><tr><td><a href='https://hackerone.com/.git/config' target='_blank'>https://hackerone.com/.git/config</a></td></tr><tr><td><a href='https://api.hackerone.com/' target='_blank'>https://api.hackerone.com/</a></td></tr><tr><td><a href='https://api.hackerone.com/v1/reports' target='_blank'>https://api.hackerone.com/v1/reports</a></td></tr><tr><td><a href='https://hackerone.com/.well-known/trust.txt' target='_blank'>https://hackerone.com/.well-known/trust.txt</a></td></tr><tr><td><a href='https://hackerone.com/.well-known/dnt-policy.txt' target='_blank'>https://hackerone.com/.well-known/dnt-policy.txt</a></td></tr><tr><td><a href='https://hackerone.com/.well-known/ai-plugin.json' target='_blank'>https://hackerone.com/.well-known/ai-plugin.json</a></td></tr><tr><td><a href='https://hackerone.com/.well-known/assetlinks.json' target='_blank'>https://hackerone.com/.well-known/assetlinks.json</a></td></tr><tr><td><a href='https://hackerone.com/.well-known/gpc.json' target='_blank'>https://hackerone.com/.well-known/gpc.json</a></td></tr><tr><td><a href='http://www.hackerone.com/.htaccess' target='_blank'>http://www.hackerone.com/.htaccess</a></td></tr><tr><td><a href='https://www.hackerone.com/.well-known/security.txt' target='_blank'>https://www.hackerone.com/.well-known/security.txt</a></td></tr><tr><td><a href='https://www.hackerone.com/blog/testing-bash-scripts-bats-practical-guide' target='_blank'>https://www.hackerone.com/blog/testing-bash-scripts-bats-practical-guide</a></td></tr><tr><td><a href='https://hackerone.com/assets/static/vendor-Dp2EYCZU.js' target='_blank'>https://hackerone.com/assets/static/vendor-Dp2EYCZU.js</a></td></tr><tr><td><a href='https://hackerone.com/assets/static/program_health_acknowledgement-DIJVYndd.js' target='_blank'>https://hackerone.com/assets/static/program_health_acknowledgement-DIJVYndd.js</a></td></tr><tr><td><a href='https://hackerone.com/assets/static/read_reports-QXgodNcc.js' target='_blank'>https://hackerone.com/assets/static/read_reports-QXgodNcc.js</a></td></tr><tr><td><a href='https://www.hackerone.com/sites/default/files/2018-07/vdp for financial services_guide (1).pdf' target='_blank'>https://www.hackerone.com/sites/default/files/2018-07/vdp for financial services_guide (1).pdf</a></td></tr><tr><td><a href='https://hackerone.com/assets/static/report_page-o9T3gxlo.js' target='_blank'>https://hackerone.com/assets/static/report_page-o9T3gxlo.js</a></td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- DNS Records -->
+    <div class="section">
+        <div class="section-header"><h2>🌍 DNS Records</h2></div>
+        <div class="section-body">
+            <div class="two-col">
+                <div>
+                    <table><thead><tr><th>Type</th><th>Value</th></tr></thead><tbody><tr><td><span class='badge passive'>A</span></td><td style='font-size:12px;word-break:break-all'>172.64.151.42</td></tr><tr><td><span class='badge passive'>A</span></td><td style='font-size:12px;word-break:break-all'>104.18.36.214</td></tr><tr><td><span class='badge passive'>AAAA</span></td><td style='font-size:12px;word-break:break-all'>2606:4700:90c1:5cc5:4264:adc:a7a8:efc4</td></tr><tr><td><span class='badge passive'>MX</span></td><td style='font-size:12px;word-break:break-all'>10 aspmx.l.google.com.</td></tr><tr><td><span class='badge passive'>MX</span></td><td style='font-size:12px;word-break:break-all'>20 alt1.aspmx.l.google.com.</td></tr><tr><td><span class='badge passive'>MX</span></td><td style='font-size:12px;word-break:break-all'>20 alt2.aspmx.l.google.com.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>b.ns.hackerone.com.</td></tr><tr><td><span class='badge passive'>NS</span></td><td style='font-size:12px;word-break:break-all'>a.ns.hackerone.com.</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"stripe-verification=20c821f6e4dfc5ee358ea9b8e4635cf062a2acac5751f8004d23b122f1cb5ac2"</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"stripe-verification=74802599834dfbfc093c8352686c992d22e7b20a6fdcfceac2e6a846074d6936"</td></tr><tr><td><span class='badge passive'>TXT</span></td><td style='font-size:12px;word-break:break-all'>"v=spf1 include:_spf.google.com include:amazonses.com include:mail.zendesk.com include:spf.mail.intercom.io include:mktomail.com include:registrarmail.net -all"</td></tr><tr><td><span class='badge passive'>SOA</span></td><td style='font-size:12px;word-break:break-all'>a.ns.hackerone.com. dns.cloudflare.com. 2402869038 10000 2400 604800 1800</td></tr><tr><td><span class='badge passive'>CAA</span></td><td style='font-size:12px;word-break:break-all'>0 issuewild ";"</td></tr><tr><td><span class='badge passive'>CAA</span></td><td style='font-size:12px;word-break:break-all'>0 iodef "mailto:caa-reports@hackerone.com"</td></tr><tr><td><span class='badge passive'>CAA</span></td><td style='font-size:12px;word-break:break-all'>0 issue "amazonaws.com"</td></tr><tr><td><span class='badge passive'>DS</span></td><td style='font-size:12px;word-break:break-all'>2371 13 2 5bb3cf845bae1692299cce6623af80ac8b8ab20434796d754fd20634c7282d87</td></tr><tr><td><span class='badge passive'>DNSKEY</span></td><td style='font-size:12px;word-break:break-all'>257 3 13 mdsswUyr3DPW132mOi8V9xESWE8jTo0d xCjjnopKl+GqJxpVXckHAeF+KkxLbxIL fDLUT0rAK9iUzy1L53eKGQ==</td></tr><tr><td><span class='badge passive'>DNSKEY</span></td><td style='font-size:12px;word-break:break-all'>256 3 13 oJMRESz5E4gYzS/q6XDrvU1qMPYIjCWz JaOau8XNEZeqCYKD5ar0IRd8KqXXFJkq mVfRvMGPmM1x8fGAa2XhSA==</td></tr></tbody></table>
+                </div>
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Email Security</h3>
+                    <table><tbody>
+                        <tr><td>SPF</td><td><span class='badge' style='background:#ff475722;color:#ff4757'>Missing</span></td></tr>
+                        <tr><td>DMARC</td><td><span class='badge' style='background:#2ed57322;color:#2ed573'>Strict</span></td></tr>
+                        <tr><td>DKIM</td><td><span class='badge' style='background:#2ed57322;color:#2ed573'>google</span></td></tr>
+                    </tbody></table>
+                    <br><table><tbody><tr><td>⚠️ SPF record missing — email spoofing possible</td></tr></tbody></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Headers -->
+    <div class="section">
+        <div class="section-header">
+            <h2>🛡️ Security Headers</h2>
+            <span class="grade">D</span>
+            <span class="count">Score: 2.5/10</span>
+        </div>
+        <div class="section-body">
+            <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Missing Headers</h3>
+            <table><thead><tr><th>Header</th><th>Severity</th><th>Impact</th></tr></thead><tbody>
+        <tr>
+            <td>Referrer-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Sensitive URLs may leak via Referrer header</td>
+        </tr>
+        <tr>
+            <td>Permissions-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Browser features not restricted</td>
+        </tr>
+        <tr>
+            <td>X-XSS-Protection</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>No XSS protection on older browsers</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Embedder-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Medium</span></td>
+            <td style='font-size:12px;color:#8b949e'>Cross-origin isolation not enforced</td>
+        </tr>
+        <tr>
+            <td>Cross-Origin-Resource-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Resources loadable from any origin</td>
+        </tr>
+        <tr>
+            <td>Access-Control-Allow-Origin</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>CORS not explicitly configured</td>
+        </tr>
+        <tr>
+            <td>X-Permitted-Cross-Domain-Policies</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Flash/PDF cross-domain access not restricted</td>
+        </tr>
+        <tr>
+            <td>Expect-CT</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>Misissued certificates may not be detected</td>
+        </tr>
+        <tr>
+            <td>Public-Key-Pins</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Certificate pinning not enforced</td>
+        </tr>
+        <tr>
+            <td>Feature-Policy</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Older browsers features not restricted</td>
+        </tr>
+        <tr>
+            <td>X-Download-Options</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Low</span></td>
+            <td style='font-size:12px;color:#8b949e'>IE may auto-execute downloaded files</td>
+        </tr>
+        <tr>
+            <td>X-DNS-Prefetch-Control</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>DNS prefetch may leak visited URLs</td>
+        </tr>
+        <tr>
+            <td>Timing-Allow-Origin</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Resource timing data may be exposed</td>
+        </tr>
+        <tr>
+            <td>Clear-Site-Data</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Browser data not cleared on logout</td>
+        </tr>
+        <tr>
+            <td>Origin-Agent-Cluster</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Process isolation not requested</td>
+        </tr>
+        <tr>
+            <td>X-Robots-Tag</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Sensitive pages may be indexed by search engines</td>
+        </tr>
+        <tr>
+            <td>NEL</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Network errors not logged</td>
+        </tr>
+        <tr>
+            <td>Report-To</td>
+            <td><span class='badge' style='background:#747d8c22;color:#747d8c'>Info</span></td>
+            <td style='font-size:12px;color:#8b949e'>Security violations not reported</td>
+        </tr></tbody></table>
+            <br><h3 style='color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase'>Info Disclosure</h3><table><thead><tr><th>Header</th><th>Value</th><th>Impact</th></tr></thead><tbody><tr><td>Server</td><td style='color:#ffa502'>cloudflare</td><td style='font-size:12px;color:#8b949e'>Reveals server software and version — info disclosure</td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- Robots.txt -->
+    <div class="section">
+        <div class="section-header"><h2>🤖 Robots.txt</h2><span class="count">0 paths</span></div>
+        <div class="section-body">
+            <div class='empty-msg'>No robots.txt found or no disallowed paths</div>
+        </div>
+    </div>
+
+    <!-- Risk Assessment -->
+    <div class="section">
+        <div class="section-header"><h2>⚠️ Risk Assessment</h2></div>
+        <div class="section-body">
+            <div class="two-col">
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Risk Breakdown</h3>
+                    <table>
+                        <thead><tr><th>Factor</th><th>Score Contribution</th></tr></thead>
+                        <tbody><tr><td>CVE</td><td>39.0</td></tr><tr><td>PORTS</td><td>0</td></tr><tr><td>WAYBACK</td><td>2.0</td></tr><tr><td>ENDPOINTS</td><td>0</td></tr></tbody>
+                    </table>
+                    <br>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Risk Reasons</h3>
+                    <ul class='reason-list'><li>Remote code execution via file upload</li><li>Drupalgeddon3 — RCE via REST API</li><li>Improper input validation in core</li><li>XSS via HTML passed to manipulation methods</li><li>XSS via passing HTML to manipulation methods</li><li>Prototype pollution via Object.extend</li></ul>
+                </div>
+                <div>
+                    <h3 style="color:#8b949e;font-size:13px;margin-bottom:10px;text-transform:uppercase">Next Steps</h3>
+                    <ul class='steps-list'><li>Exploit CVE-2020-13671 on Drupal — Remote code execution via file upload</li><li>Exploit CVE-2019-6340 on Drupal — Drupalgeddon3 — RCE via REST API</li><li>Exploit CVE-2022-25271 on Drupal — Improper input validation in core</li></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    <p>Generated by Web Recon Tool v1.0.0 | 2026-05-06 14:52:54</p>
+</div>
+
+</body>
+</html>
