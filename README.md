@@ -11,6 +11,12 @@ A Python-based web reconnaissance tool that goes beyond simple scanning — it *
 
 ---
 
+## 🖥️ Tool in Action
+
+![Tool Running](screenshots/web-recon-tool.png)
+
+---
+
 ## 📸 Sample Reports
 
 | Intigriti.com | HackerOne.com |
@@ -55,6 +61,15 @@ Most recon tools dump raw data. This tool thinks like a pentester:
 ```bash
 git clone https://github.com/princephantom-cm/web-recon-tool.git
 cd web-recon-tool
+```
+
+**Linux / Kali:**
+```bash
+pip install -r requirements.txt --break-system-packages
+```
+
+**Windows:**
+```bash
 pip install -r requirements.txt
 ```
 
@@ -125,7 +140,6 @@ web-recon-tool/
 This tool is intended for **authorized penetration testing and security research only**.
 Do not use against systems you do not have explicit permission to test.
 The author is not responsible for any misuse.
-
 
 ---
 
