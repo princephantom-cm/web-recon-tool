@@ -1,0 +1,8 @@
+requests
+httpx
+aiohttp
+dnspython
+click
+jinja2
+rich
+urllib3
